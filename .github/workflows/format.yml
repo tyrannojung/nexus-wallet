@@ -13,31 +13,32 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [20.x]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up node ${{ matrix.node-version }}
+      - name: Set up Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: 'pnpm'
 
-      - name: Get npm store directory
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
         uses: actions/cache@v3
-        id: npm-cache
         with:
-          path: |
-            **/node_modules
-            ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-node-
-            ${{ runner.os }}
-      - if: ${{ steps.npm-cache.outputs.cache-hit != 'true' }}
-        run: npm ci
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install
 
       - name: Check code format
-        run: npm run format:check
+        run: pnpm run format:check
