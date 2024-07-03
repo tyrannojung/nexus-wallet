@@ -7,7 +7,7 @@ export default function Home() {
     <Flex height="100vh" alignItems="center" justifyContent="center">
       <Box textAlign="center" width="496px">
         <Text fontSize="70px" fontWeight={700} mb={40}>
-          Wallet Test
+          Nexus Wallet
         </Text>
         <VStack spacing={8}>
           <Button width="378px" h="48px" borderRadius="8px" bg="#007AFF">
