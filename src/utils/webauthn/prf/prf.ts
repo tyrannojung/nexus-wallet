@@ -4,7 +4,7 @@ import {
   CredentialCreationOptions,
   CredentialRequestOptions,
   AuthenticationExtensionsClientOutputsExtended,
-} from '@/types/webauthn';
+} from '@/types/webauthnPrf';
 
 const handlePrfTest = async (): Promise<void> => {
   try {

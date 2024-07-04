@@ -1,11 +1,40 @@
 'use client';
 
+import { useState } from 'react';
 import { Flex, Box, Text, Button, VStack } from '@chakra-ui/react';
-import handleSignup from '@/utils/prf';
+import { handleSignUp, handleSignInWrite, handleSignInRead } from '@/utils/webauthn/largeBlob';
 
 export default function Home() {
-  const handleLoginClick = async () => {
-    await handleSignup();
+  const [regCredential, setRegCredential] = useState<PublicKeyCredential | null>(null);
+  const [isSignedIn, setIsSignedIn] = useState(false);
+
+  const handleSignUpClick = async () => {
+    console.log('Before SignUp:', regCredential);
+    const value = await handleSignUp();
+    if (value) {
+      setRegCredential(value);
+      Promise.resolve().then(() => {
+        console.log('After SignUp:', value);
+      });
+    }
+  };
+
+  const handleSignInClick = async () => {
+    console.log(regCredential);
+    if (regCredential && 'rawId' in regCredential && 'response' in regCredential) {
+      await handleSignInWrite(regCredential);
+      setIsSignedIn(true); // SignIn이 성공하면 상태 변경
+    } else {
+      alert('Please sign up first.');
+    }
+  };
+
+  const handleReadClick = async () => {
+    if (regCredential) {
+      await handleSignInRead(regCredential);
+    } else {
+      alert('Please sign up first.');
+    }
   };
 
   return (
@@ -15,14 +44,21 @@ export default function Home() {
           Nexus Wallet
         </Text>
         <VStack spacing={8}>
-          <Button width="378px" h="48px" borderRadius="8px" bg="#007AFF" onClick={handleLoginClick}>
+          <Button width="378px" h="48px" borderRadius="8px" bg="#007AFF" onClick={handleSignUpClick}>
             <Text textAlign="center" fontSize="16px" lineHeight="24px" fontWeight="600" color="#FFFFFF">
-              Prf Test
+              LargeBlob SignUp
             </Text>
           </Button>
-          <Button width="378px" h="48px" borderRadius="8px" bg="#0F0F12" border="2px solid #007AFF">
+          <Button
+            width="378px"
+            h="48px"
+            borderRadius="8px"
+            bg="#0F0F12"
+            border="2px solid #007AFF"
+            onClick={!isSignedIn ? handleSignInClick : handleReadClick}
+          >
             <Text textAlign="center" fontSize="16px" lineHeight="24px" fontWeight="600" color="#007AFF">
-              LargeBlob Test
+              {!isSignedIn ? 'LargeBlob SignIn' : 'LargeBlob Read'}
             </Text>
           </Button>
         </VStack>

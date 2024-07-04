@@ -1,13 +1,13 @@
 'use server';
 
 import { GenerateRegistrationOptionsOpts, generateRegistrationOptions } from '@simplewebauthn/server';
-import { rpId } from '@/constant';
+import { ORIGIN } from '@/constant';
 
 // 계정 생성 옵션
 const generateWebAuthnRegistrationOptions = async (name: string) => {
   const opts: GenerateRegistrationOptionsOpts = {
     rpName: 'SimpleWebAuthn Example',
-    rpID: rpId,
+    rpID: ORIGIN,
     userName: name,
     timeout: 60000,
     attestationType: 'direct',
