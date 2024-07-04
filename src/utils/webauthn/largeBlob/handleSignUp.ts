@@ -2,7 +2,7 @@ import {
   CredentialCreationOptionsLargeBlob,
   AuthenticationExtensionsClientOutputsLargeBlob,
 } from '@/types/webauthnLargeBlob';
-import { RP_NAME, RP_IDENTIFIER } from '@/constant';
+import { RP_NAME, RP_IDENTIFIER, SIGNATURE_NAME } from '@/constant';
 
 const handleSignUp = async (): Promise<PublicKeyCredential | null> => {
   try {
@@ -15,11 +15,12 @@ const handleSignUp = async (): Promise<PublicKeyCredential | null> => {
         },
         user: {
           id: new Uint8Array([5, 6, 7, 8]),
-          name: 'tyrannojung3',
-          displayName: 'tyrannojung3',
+          name: SIGNATURE_NAME,
+          displayName: SIGNATURE_NAME,
         },
         pubKeyCredParams: [
           { alg: -7, type: 'public-key' }, // ES256
+          { alg: -257, type: 'public-key' }, // RS256
         ],
         authenticatorSelection: {
           residentKey: 'preferred', // 또는 'required'
