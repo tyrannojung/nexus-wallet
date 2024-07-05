@@ -44,15 +44,6 @@ export const handleSignInWrite = async (regCredential: PublicKeyCredential): Pro
       // Large blob 작성 실패
       console.log('Failed to write large blob.');
     }
-
-    // const auth1ExtensionResults =
-    //   auth1Credential.getClientExtensionResults() as AuthenticationExtensionsClientOutputsLargeBlob;
-    // console.log('인증 확장 결과:', auth1ExtensionResults);
-
-    // if (auth1ExtensionResults.largeBlob !== undefined) {
-    //   const retrievedLargeBlobData = new TextDecoder().decode(auth1ExtensionResults.largeBlob);
-    //   console.log('Retrieved LargeBlob Data:', retrievedLargeBlobData);
-    // }
   } catch (err) {
     console.error('Error during credential retrieval:', err);
   }

@@ -41,5 +41,6 @@ module.exports = {
     'react/react-in-jsx-scope': 0, // React 버전 17 이후 JSX 사용 시 React를 범위 내에 두지 않아도 됨
     'import/extensions': 0,
     'no-bitwise': 0, // 비트 연산자를 허용
+    'import/prefer-default-export': 'off',
   },
 };
