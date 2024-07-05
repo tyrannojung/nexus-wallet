@@ -3,10 +3,12 @@ import {
   AuthenticationExtensionsClientOutputsLargeBlob,
 } from '@/types/webauthnLargeBlob';
 import { RP_IDENTIFIER } from '@/constant';
+import { wallet } from '@/utils/viem';
 
-export const handleSignInWrite = async (regCredential: PublicKeyCredential): Promise<void> => {
+export const handleSignInWrite = async (regCredential: PublicKeyCredential): Promise<boolean> => {
   try {
-    const blobBits = new TextEncoder().encode('This is the large blob data.');
+    const createWallet = wallet.createPrivateKey();
+    const blobBits = new TextEncoder().encode(createWallet);
     const blob = Uint8Array.from(blobBits);
     const requestOptions: CredentialRequestOptionsLargeBlob = {
       publicKey: {
@@ -40,16 +42,18 @@ export const handleSignInWrite = async (regCredential: PublicKeyCredential): Pro
     if (extensionResults.largeBlob && extensionResults.largeBlob.written) {
       // Large blob 성공적으로 작성됨
       console.log('Large blob was successfully written.');
-    } else {
-      // Large blob 작성 실패
-      console.log('Failed to write large blob.');
+      return true;
     }
+    // Large blob 작성 실패
+    console.log('Failed to write large blob.');
+    return false;
   } catch (err) {
     console.error('Error during credential retrieval:', err);
+    return false;
   }
 };
 
-export const handleSignInRead = async (regCredential: PublicKeyCredential): Promise<void> => {
+export const handleSignInRead = async (regCredential: PublicKeyCredential): Promise<boolean> => {
   try {
     const requestOptions: CredentialRequestOptionsLargeBlob = {
       publicKey: {
@@ -82,11 +86,14 @@ export const handleSignInRead = async (regCredential: PublicKeyCredential): Prom
 
     if (extensionResults.largeBlob && extensionResults.largeBlob.blob) {
       const blobBits = new Uint8Array(extensionResults.largeBlob.blob);
+
       console.log('Retrieved LargeBlob Data:', new TextDecoder().decode(blobBits));
-    } else {
-      console.log('Failed to read large blob.');
+      return true;
     }
+    console.log('Failed to read large blob.');
+    return false;
   } catch (err) {
     console.error('Error during credential retrieval:', err);
+    return false;
   }
 };

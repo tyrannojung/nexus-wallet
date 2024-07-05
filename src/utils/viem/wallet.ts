@@ -3,12 +3,14 @@ import { generatePrivateKey, privateKeyToAccount, generateMnemonic, mnemonicToAc
 const createPrivateKey = (): `0x${string}` => {
   //  키생성
   const privateKey = generatePrivateKey();
+  console.log('🚀 ~ createPrivateKey ~ privateKey:', privateKey);
   return privateKey;
   // 주소 가져오기
 };
 
 const getPrivateKeyFromAddress = (privateKey: `0x${string}`) => {
   const account = privateKeyToAccount(privateKey);
+  console.log('🚀 ~ getPrivateKeyFromAddress ~ account:', account);
 
   return account.address;
 };
