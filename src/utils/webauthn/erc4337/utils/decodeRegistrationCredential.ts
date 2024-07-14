@@ -24,9 +24,13 @@ export default function decodeRegistrationCredential(credential: RegistrationRes
 
   const clientDataJSON = decodeClientDataJSON(response.clientDataJSON);
   const attestationObject = decodeAttestationObject(response.attestationObject);
+  console.log('🚀 ~ attestationObject:', attestationObject);
 
   const authData = parseAuthData(attestationObject.authData);
+  console.log(attestationObject.authData);
+  console.log('🚀 ~ authData:', authData);
   const attStmt = parseAttestationStatement(attestationObject.attStmt);
+  console.log('🚀 ~ attStmt:', attStmt);
 
   return {
     ...credential,

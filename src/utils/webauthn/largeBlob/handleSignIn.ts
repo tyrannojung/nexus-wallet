@@ -33,6 +33,7 @@ export const handleSignInWrite = async (regCredential: PublicKeyCredential): Pro
     };
 
     const assertion = (await navigator.credentials.get(requestOptions)) as PublicKeyCredential;
+
     console.log('assertion ===', assertion);
 
     const extensionResults = assertion.getClientExtensionResults() as AuthenticationExtensionsClientOutputsLargeBlob;

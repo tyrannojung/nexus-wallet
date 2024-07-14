@@ -3,6 +3,7 @@ import {
   AuthenticationExtensionsClientOutputsLargeBlob,
 } from '@/types/webauthnLargeBlob';
 import { RP_NAME, RP_IDENTIFIER, SIGNATURE_NAME } from '@/constant';
+// import { check2 } from '../erc4337';
 
 const handleSignUp = async (): Promise<PublicKeyCredential | null> => {
   try {
@@ -30,11 +31,13 @@ const handleSignUp = async (): Promise<PublicKeyCredential | null> => {
             support: 'preferred', // 또는 'required'
           },
         },
+        attestation: 'direct',
       },
     };
 
     const regCredential = (await navigator.credentials.create({ publicKey: options.publicKey })) as PublicKeyCredential;
     console.log('regCredential ===', regCredential);
+    // check2(regCredential);
 
     const extensionResults =
       regCredential.getClientExtensionResults() as AuthenticationExtensionsClientOutputsLargeBlob;

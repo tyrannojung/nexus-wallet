@@ -24,6 +24,7 @@
     "@simplewebauthn/browser": "^10.0.0",
     "@simplewebauthn/server": "^10.0.0",
     "@simplewebauthn/typescript-types": "^8.3.4",
+    "ethers": "^6.10.0",
     "base64url": "^3.0.1",
     "cbor": "^9.0.2",
     "next": "14.2.3",
