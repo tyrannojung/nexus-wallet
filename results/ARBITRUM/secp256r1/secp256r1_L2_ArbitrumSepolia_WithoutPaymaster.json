@@ -1,0 +1,42 @@
+[
+    {
+        "tx": "0xf5f260c862cdd5ccffcf22a6147e4f39e17c98fbefbab575f80a77443fd652ff",
+        "gasUsed": 337536
+    },
+    {
+        "tx": "0x1fc74918223ca2fdfe65b85a5997166a5f0442e6dea4d378d1722a08eb858d33",
+        "gasUsed": 306321
+    },
+    {
+        "tx": "0xf0bafbee38c2c12f812b965d756c4abaa21c001131e49725274247353bee0c2a",
+        "gasUsed": 310066
+    },
+    {
+        "tx": "0xcb9c7c81ef815a48644cf878b0fe90a6126d96e34403e74164bff7d9974baadb",
+        "gasUsed": 300360
+    },
+    {
+        "tx": "0x3ad8ccfeaa76176e743b42abada1f83dbe3827e5f42382dc5313cf8097fb3f8f",
+        "gasUsed": 320987
+    },
+    {
+        "tx": "0xc15aa79335a8e657f1ee80a71751a319ec6075d18fea793a021eb2b32f3c3c65",
+        "gasUsed": 314540
+    },
+    {
+        "tx": "0xc222230dbfdcf88934eb5827d98738547d746bf98b98754dc2b5d0a5dc44d0f5",
+        "gasUsed": 318338
+    },
+    {
+        "tx": "0x54068be626aa0de19a5095aa998610ba5526060329023c45140fbbe811b1c74c",
+        "gasUsed": 315923
+    },
+    {
+        "tx": "0xa78c9ba1f1b7356d2acfd5e09e65883252df9bae173214fb6f9169f9841aa731",
+        "gasUsed": 320120
+    },
+    {
+        "tx": "0x8b084b1a02c205e6884dc513aa9854ee96c3114e8579347f7a02803044e2ab96",
+        "gasUsed": 317189
+    }
+]
