@@ -5,6 +5,7 @@ import { AuthenticatorAttestationResponse, PublicKeyCredentialJSON } from '../ty
 export const arrayBufferToBase64URL = (buffer: ArrayBuffer): string => base64url(Buffer.from(buffer));
 const base64URLToArrayBuffer = (base64: string): ArrayBuffer => Uint8Array.from(base64url.toBuffer(base64)).buffer;
 
+// 넣어 줄 때, PublicKeyCredential 타입 을 string 형식의 json으로 바꿔줌
 export const publicKeyCredentialToJSON = (cred: PublicKeyCredential): PublicKeyCredentialJSON | null => {
   if (!cred) return null;
   const response = cred.response as AuthenticatorAttestationResponse;
@@ -22,6 +23,7 @@ export const publicKeyCredentialToJSON = (cred: PublicKeyCredential): PublicKeyC
   };
 };
 
+// 꺼내올 때, json 을 PublicKeyCredential 객체 타입으로 바꿔서 보내줌
 export const jsonToPublicKeyCredential = (json: PublicKeyCredentialJSON): PublicKeyCredential | null => {
   if (!json) return null;
   const response = {

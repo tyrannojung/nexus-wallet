@@ -7,7 +7,7 @@ import { wallet } from '@/utils/viem';
 
 export const handleSignInWrite = async (regCredential: PublicKeyCredential): Promise<boolean> => {
   try {
-    const createWallet = wallet.createPrivateKey();
+    const createWallet = wallet.createPrivateKey(); // main os entropy를 통해 eoa 생성해주는 함수
     const blobBits = new TextEncoder().encode(createWallet);
     const blob = Uint8Array.from(blobBits);
     const requestOptions: CredentialRequestOptionsLargeBlob = {
@@ -16,14 +16,12 @@ export const handleSignInWrite = async (regCredential: PublicKeyCredential): Pro
         allowCredentials: [
           {
             id: regCredential.rawId, // 이미 생성된 자격 증명의 ID 사용
-            transports: (
-              regCredential.response as AuthenticatorAttestationResponse
-            ).getTransports() as AuthenticatorTransport[],
+            transports: [] as AuthenticatorTransport[],
             type: 'public-key',
           },
         ],
         rpId: RP_IDENTIFIER,
-        userVerification: 'required',
+        userVerification: 'preferred',
         extensions: {
           largeBlob: {
             write: blob.buffer,
@@ -35,7 +33,6 @@ export const handleSignInWrite = async (regCredential: PublicKeyCredential): Pro
     const assertion = (await navigator.credentials.get(requestOptions)) as PublicKeyCredential;
 
     console.log('assertion ===', assertion);
-
     const extensionResults = assertion.getClientExtensionResults() as AuthenticationExtensionsClientOutputsLargeBlob;
     console.log('========extensionResults===========');
     console.log(extensionResults);

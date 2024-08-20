@@ -6,6 +6,7 @@ export const openDB = (): Promise<IDBDatabase> =>
 
     request.onupgradeneeded = () => {
       const db = request.result;
+      // 'storage' Object Store가 없는 경우 생성
       if (!db.objectStoreNames.contains('storage')) {
         db.createObjectStore('storage', { keyPath: 'key' });
       }
@@ -27,7 +28,9 @@ export const setItem = async (itemKey: string, value: any): Promise<void> => {
   const transaction = db.transaction('storage', 'readwrite');
   const store = transaction.objectStore('storage');
 
-  const valueToStore = JSON.stringify(publicKeyCredentialToJSON(value));
+  // 값이 regCredential일때는 indexdb에 들어 갈 수 있는 값으로 변형해서 넣어 줘야 한다.
+  const valueToStore =
+    itemKey === 'regCredential' ? JSON.stringify(publicKeyCredentialToJSON(value)) : JSON.stringify(value);
 
   const request = store.put({ key: itemKey, value: valueToStore });
 
@@ -51,12 +54,15 @@ export const getItem = async (itemKey: string): Promise<any> => {
   const transaction = db.transaction('storage', 'readonly');
   const store = transaction.objectStore('storage');
   const request = store.get(itemKey);
+  console.log(request);
 
   return new Promise((resolve, reject) => {
     request.onsuccess = () => {
       if (request.result) {
         const result = JSON.parse(request.result.value);
-        const value = jsonToPublicKeyCredential(result);
+
+        // 조건에 따라 변환 작업 수행
+        const value = itemKey === 'regCredential' ? jsonToPublicKeyCredential(result) : result;
 
         console.log(`Item with key '${itemKey}' retrieved successfully`, value);
         resolve(value);
@@ -72,5 +78,4 @@ export const getItem = async (itemKey: string): Promise<any> => {
     };
   });
 };
-
 export const storage = { setItem, getItem };

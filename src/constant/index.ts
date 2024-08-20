@@ -1,4 +1,5 @@
-export const RP_IDENTIFIER = process.env.NEXT_PUBLIC_RP_IDENTIFIER || 'localhost';
-export const RP_NAME = process.env.NEXT_PUBLIC_RP_NAME || 'Local Development';
-export const ORIGIN = process.env.NEXT_PUBLIC_ORIGIN || 'http://localhost:3000';
-export const SIGNATURE_NAME = process.env.NEXT_PUBLIC_NEXUS_NAME || 'local';
+export * from './fido';
+export * from './blockchain/abis';
+export * from './blockchain/chainId';
+export * from './blockchain/contractAddress';
+export * from './blockchain/provider';

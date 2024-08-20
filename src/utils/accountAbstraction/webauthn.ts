@@ -5,7 +5,8 @@ import {
 } from '@simplewebauthn/typescript-types';
 import { bufferToBase64URLString } from '@/utils/webauthn/erc4337/utils/bufferToBase64URLString';
 import decodeRegistrationCredential from '@/utils/webauthn/erc4337/utils/decodeRegistrationCredential';
-import authResponseToSigVerificationInput from '@/utils/webauthn/erc4337/utils/authResponseToSigVerificationInput';
+import { Member } from '@/utils/indexedDb/types';
+import { storage } from '@/utils/indexedDb';
 
 export const check = async () => {
   const challenge = new Uint8Array([1, 2, 3, 4]);
@@ -62,31 +63,16 @@ const convertToRegistrationResponseJSON = (regCredential: PublicKeyCredential): 
   };
 };
 
-export const check2 = async (regCredential: PublicKeyCredential) => {
-  console.log(regCredential);
-  const credId = `0x${base64url.toBuffer(regCredential.id).toString('hex')}`;
-  // PublicKeyCredential을 RegistrationResponseJSON으로 변환
+export const registerLocalPublicAccount = async (regCredential: PublicKeyCredential) => {
+  console.log('🚀 ~ check2 ~ regCredential:', regCredential);
+
   const registrationResponseJSON = convertToRegistrationResponseJSON(regCredential);
 
   // 변환된 객체를 SimpleWebAuthn의 RegistrationResponseJSON으로 캐스팅
   const simpleWebAuthnRegistrationResponseJSON =
     registrationResponseJSON as unknown as SimpleWebAuthnRegistrationResponseJSON;
   const decodedPassKey = decodeRegistrationCredential(simpleWebAuthnRegistrationResponseJSON);
-  console.log(credId);
-  console.log(decodedPassKey);
 
-  const ecVerifyInputs = authResponseToSigVerificationInput(
-    decodedPassKey.response.attestationObject.authData.parsedCredentialPublicKey,
-    {
-      authenticatorData: decodedPassKey.response.authenticatorData!,
-      clientDataJSON: simpleWebAuthnRegistrationResponseJSON.response.clientDataJSON,
-      signature: decodedPassKey.response.attestationObject.attStmt.sig!,
-    },
-  );
-  console.log('======ecVerifyInputs=======');
-  console.log(ecVerifyInputs);
-
-  // 유저의 pubk x, y쌍
   const pubKeyCoordinates = [
     `0x${base64url
       .toBuffer(decodedPassKey.response.attestationObject.authData.parsedCredentialPublicKey?.x || '')
@@ -96,25 +82,33 @@ export const check2 = async (regCredential: PublicKeyCredential) => {
       .toString('hex')}`,
   ];
 
-  const challengeOffsetRegex = new RegExp(
-    `(.*)${Buffer.from(decodedPassKey.response.clientDataJSON.challenge).toString('hex')}`,
-  );
-  const challengePrefix = challengeOffsetRegex.exec(
-    base64url.toBuffer(simpleWebAuthnRegistrationResponseJSON.response.clientDataJSON).toString('hex'),
-  )?.[1];
+  // const challengeOffsetRegex = new RegExp(
+  //   `(.*)${Buffer.from(decodedPassKey.response.clientDataJSON.challenge).toString('hex')}`,
+  // );
+  // const challengePrefix = challengeOffsetRegex.exec(
+  //   base64url.toBuffer(simpleWebAuthnRegistrationResponseJSON.response.clientDataJSON).toString('hex'),
+  // )?.[1];
 
-  const newPush0 = decodedPassKey.response.attestationObject.authData.flagsMask;
-  const newPush1 = `0x${base64url.toBuffer(simpleWebAuthnRegistrationResponseJSON.response.authenticatorData!).toString('hex')}`;
-  const newPush2 = `0x${base64url.toBuffer(simpleWebAuthnRegistrationResponseJSON.response.clientDataJSON).toString('hex')}`;
-  const newPush3 = '0x01020304'; //  new Uint8Array([9, 0, 1, 2])
-  const newPush4 = Buffer.from(challengePrefix || '', 'hex').length;
+  // const newPush0 = decodedPassKey.response.attestationObject.authData.flagsMask;
+  // // const newPush1 = `0x${base64url.toBuffer(simpleWebAuthnRegistrationResponseJSON.response.authenticatorData!).toString('hex')}`;
+  // const newPush2 = `0x${base64url.toBuffer(simpleWebAuthnRegistrationResponseJSON.response.clientDataJSON).toString('hex')}`;
+  // const newPush3 = '0x01020304'; //  new Uint8Array([9, 0, 1, 2])
+  // const newPush4 = Buffer.from(challengePrefix || '', 'hex').length;
 
-  console.log(`const authenticatorDataFlagMask = "${newPush0}"`);
-  console.log(`const authenticatorData = "${newPush1}"`);
-  console.log(`const clientData = "${newPush2}"`);
-  console.log(`const clientChallenge = "${newPush3}"`);
-  console.log(`const clientChallengeOffset = "${newPush4}"`);
-  console.log(`const pubKeyCoordinates = ["${pubKeyCoordinates[0]}", "${pubKeyCoordinates[1]}"]`);
-  console.log(`const rs = ["${ecVerifyInputs.signature[0]}", "${ecVerifyInputs.signature[1]}"]`);
-  console.log(`const Q = ["${ecVerifyInputs.publicKeyCoordinates[0]}", "${ecVerifyInputs.publicKeyCoordinates[1]}"]`);
+  // console.log(`const authenticatorDataFlagMask = "${newPush0}"`);
+  // // console.log(`const authenticatorData = "${newPush1}"`);
+  // console.log(`const clientData = "${newPush2}"`);
+  // console.log(`const clientChallenge = "${newPush3}"`);
+  // console.log(`const clientChallengeOffset = "${newPush4}"`);
+  // console.log(`const pubKeyCoordinates = ["${pubKeyCoordinates[0]}", "${pubKeyCoordinates[1]}"]`);
+
+  const memberInfo: Member = {
+    id: 'testId',
+    pubkCoordinates: pubKeyCoordinates,
+    email: 'test@test.co.kr',
+    name: 'test',
+  };
+
+  console.log(memberInfo);
+  await storage.setItem('memberInfo', memberInfo);
 };

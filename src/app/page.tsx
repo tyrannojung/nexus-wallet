@@ -25,8 +25,13 @@ export default function Home() {
     console.log('Before SignUp:', regCredential);
     const value = await handleSignUp();
     if (value) {
+      // 인덱스 디비에서 가져온다.
       setRegCredential(value);
       await storage.setItem('regCredential', value);
+      // const checkRegCredential = await storage.getItem('regCredential');
+      // console.log('🚀 ~ handleSignUpClick ~ checkRegCredential:', checkRegCredential);
+      // const memberInfo = await storage.getItem('memberInfo');
+      // console.log('🚀 ~ handleSignUpClick ~ memberInfo:', memberInfo);
       Promise.resolve().then(() => {
         console.log('After SignUp:', value);
       });
