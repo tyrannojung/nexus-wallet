@@ -1,1 +1,1 @@
-export { check, registerLocalPublicAccount } from './webauthn';
+export { registerLocalPublicAccount, createAccountAbstraction } from './action';

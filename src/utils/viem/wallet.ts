@@ -8,7 +8,7 @@ const createPrivateKey = (): `0x${string}` => {
   // 주소 가져오기
 };
 
-const getPrivateKeyFromAddress = (privateKey: `0x${string}`) => {
+const getPublicKeyFromPrivateKey = (privateKey: `0x${string}`) => {
   const account = privateKeyToAccount(privateKey);
   console.log('🚀 ~ getPrivateKeyFromAddress ~ account:', account);
 
@@ -27,4 +27,4 @@ const getAccountFromMnemonic = (mnemonic: string) => {
   return account.address;
 };
 
-export const wallet = { createPrivateKey, getPrivateKeyFromAddress, createMnemonic, getAccountFromMnemonic };
+export const wallet = { createPrivateKey, getPublicKeyFromPrivateKey, createMnemonic, getAccountFromMnemonic };

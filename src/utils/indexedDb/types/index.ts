@@ -16,10 +16,3 @@ export interface PublicKeyCredentialJSON {
   authenticatorAttachment?: string;
   clientExtensionResults: any;
 }
-
-export interface Member {
-  id: string;
-  pubkCoordinates: string[];
-  email: string;
-  name: string;
-}

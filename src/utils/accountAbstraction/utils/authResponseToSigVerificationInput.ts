@@ -17,8 +17,6 @@ const authResponseToSigVerificationInput = (
   parsedCredentialPublicKey: { x?: string; y?: string } | undefined,
   authResponse: AuthenticatorAssertionResponseJSON,
 ) => {
-  console.log('🚀 ~ parsedCredentialPublicKey:', parsedCredentialPublicKey);
-  console.log('🚀 ~ authResponse:', authResponse);
   const authDataBuffer = base64url.toBuffer(authResponse.authenticatorData);
   const clientDataHash = Buffer.from(ethers.sha256(base64url.toBuffer(authResponse.clientDataJSON)).slice(2), 'hex');
 

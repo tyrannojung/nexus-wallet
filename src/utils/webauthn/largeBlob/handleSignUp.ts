@@ -37,12 +37,12 @@ const handleSignUp = async (): Promise<PublicKeyCredential | null> => {
     };
 
     const regCredential = (await navigator.credentials.create({ publicKey: options.publicKey })) as PublicKeyCredential;
-    registerLocalPublicAccount(regCredential);
+    const indexDBsetCheck = await registerLocalPublicAccount(regCredential);
 
     const extensionResults =
       regCredential.getClientExtensionResults() as AuthenticationExtensionsClientOutputsLargeBlob;
 
-    if (extensionResults.largeBlob && extensionResults.largeBlob.supported) {
+    if (extensionResults.largeBlob && extensionResults.largeBlob.supported && indexDBsetCheck) {
       console.log('Large blob is supported for this credential.');
       await storage.setItem('regCredential', regCredential);
       return regCredential;

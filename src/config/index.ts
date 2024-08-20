@@ -8,14 +8,14 @@ const { ENTRYPOINT_ABI, SECP256K1_ABI, SECP256R1_ABI } = CONSTANTS;
 const CHAIN_ID = selectNetwork === 'SEPOLIA' ? CONSTANTS.SEPOLIA : CONSTANTS.ARBITRUM_SEPOLIA;
 const PROVIDER = selectNetwork === 'SEPOLIA' ? CONSTANTS.SEPOLIA_PROVIDER : CONSTANTS.ARBITRUM_SEPOLIA_PROVIDER;
 
-const ENTRYPOINT_ADDRESS = CONSTANTS.EntryPoint;
+export const ENTRYPOINT_ADDRESS = CONSTANTS.EntryPoint;
 
-const SECP256K1_ADDRESS =
+export const SECP256K1_ADDRESS =
   selectNetwork === 'SEPOLIA'
     ? CONSTANTS.SepoliaSecp256K1AccountFactory
     : CONSTANTS.ArbitrumSepoliaSecp256K1AccountFactory;
 
-const SECP256R1_ADDRESS =
+export const SECP256R1_ADDRESS =
   selectNetwork === 'SEPOLIA'
     ? CONSTANTS.SepoliaSecp256R1AccountFactory
     : CONSTANTS.ArbitrumSepoliaSecp256R1AccountFactory;

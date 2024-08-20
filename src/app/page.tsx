@@ -2,52 +2,52 @@
 
 import { useState, useEffect } from 'react';
 import { Flex, Box, Text, Button, VStack } from '@chakra-ui/react';
-import { handleSignUp, handleSignInWrite, handleSignInRead } from '@/utils/webauthn/largeBlob';
+import { handleSignUp, handleSignInWrite, handleSignInRead } from '@/utils/webauthn';
 import { storage } from '@/utils/indexedDb';
-import { mockCredential } from '@/utils/indexedDb/__mocks__/credential.mock';
+import { Member } from '@/types/member';
 
 export default function Home() {
-  const [regCredential, setRegCredential] = useState<PublicKeyCredential | null>(mockCredential);
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [regCredential, setRegCredential] = useState<PublicKeyCredential | null>(null);
+  const [member, setMember] = useState<Member | null>(null);
+  // 리랜더링 스테이트
+  const [forceRender, setForceRender] = useState(false);
 
   useEffect(() => {
     const fetchCredential = async () => {
       const storedCredential = await storage.getItem('regCredential');
-      if (storedCredential) {
+      const storedMemberInfo = await storage.getItem('memberInfo');
+      if (storedCredential && storedMemberInfo) {
         setRegCredential(storedCredential);
+        setMember(storedMemberInfo);
       }
     };
 
     fetchCredential();
-  }, []);
+  }, [forceRender]);
 
   const handleSignUpClick = async () => {
-    console.log('Before SignUp:', regCredential);
     const value = await handleSignUp();
     if (value) {
-      // 인덱스 디비에서 가져온다.
+      const memberInfo = await storage.getItem('memberInfo');
+      setMember(memberInfo);
       setRegCredential(value);
-      await storage.setItem('regCredential', value);
-      // const checkRegCredential = await storage.getItem('regCredential');
-      // console.log('🚀 ~ handleSignUpClick ~ checkRegCredential:', checkRegCredential);
-      // const memberInfo = await storage.getItem('memberInfo');
-      // console.log('🚀 ~ handleSignUpClick ~ memberInfo:', memberInfo);
-      Promise.resolve().then(() => {
-        console.log('After SignUp:', value);
-      });
+    } else {
+      alert('Large blob is not supported.');
     }
   };
 
   const handleSignInClick = async () => {
-    if (regCredential && 'rawId' in regCredential && 'response' in regCredential) {
+    if (regCredential) {
       const check = await handleSignInWrite(regCredential);
-      if (check) {
-        setIsSignedIn(true); // SignIn이 성공하면 상태 변경
-        return;
+      if (!check) {
+        alert('Something went wrong.');
       }
-      alert('Large blob is not supported.');
+
+      // index db state 리랜더링 필요
+      setForceRender((prev) => !prev);
+      return;
     }
-    alert('Please sign up first.');
+    alert('Something went wrong.');
   };
 
   const handleReadClick = async () => {
@@ -59,6 +59,9 @@ export default function Home() {
     }
   };
 
+  const shouldShowSignUpButton = !regCredential && !member;
+  const shouldShowSignInButton = !member?.pubk;
+
   return (
     <Flex height="100vh" alignItems="center" justifyContent="center">
       <Box textAlign="center" width="496px">
@@ -66,25 +69,29 @@ export default function Home() {
           Nexus Wallet
         </Text>
         <VStack spacing={8}>
-          <Button width="378px" h="48px" borderRadius="8px" bg="#007AFF" onClick={handleSignUpClick}>
-            <Text textAlign="center" fontSize="16px" lineHeight="24px" fontWeight="600" color="#FFFFFF">
-              LargeBlob SignUp
-            </Text>
-          </Button>
+          {shouldShowSignUpButton && (
+            <Button width="400px" h="48px" borderRadius="8px" bg="#007AFF" onClick={handleSignUpClick}>
+              <Text textAlign="center" fontSize="16px" lineHeight="24px" fontWeight="600" color="#FFFFFF">
+                Create a secp256r1-based private key in the TEE
+              </Text>
+            </Button>
+          )}
+          {shouldShowSignInButton && (
+            <Button
+              width="400px"
+              h="48px"
+              borderRadius="8px"
+              bg="#0F0F12"
+              border="2px solid #007AFF"
+              onClick={handleSignInClick}
+            >
+              <Text textAlign="center" fontSize="16px" lineHeight="24px" fontWeight="600" color="#007AFF">
+                Create a secp256k1-based private key in the TEE
+              </Text>
+            </Button>
+          )}
           <Button
-            width="378px"
-            h="48px"
-            borderRadius="8px"
-            bg="#0F0F12"
-            border="2px solid #007AFF"
-            onClick={!isSignedIn ? handleSignInClick : handleReadClick}
-          >
-            <Text textAlign="center" fontSize="16px" lineHeight="24px" fontWeight="600" color="#007AFF">
-              {!isSignedIn ? 'LargeBlob SignIn' : 'LargeBlob Read'}
-            </Text>
-          </Button>
-          <Button
-            width="378px"
+            width="400px"
             h="48px"
             borderRadius="8px"
             bg="#0F0F12"
