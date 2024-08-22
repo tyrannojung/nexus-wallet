@@ -48,7 +48,7 @@ export const handleSignInWrite = async (regCredential: PublicKeyCredential): Pro
       if (existingMemberInfo) {
         const updatedMemberInfo = {
           ...existingMemberInfo,
-          pubk: getPublicKey,
+          eoa: getPublicKey,
         };
         await storage.setItem('memberInfo', updatedMemberInfo);
         return true;

@@ -35,12 +35,15 @@ module.exports = {
     tsconfigRootDir: __dirname, // tsconfig 파일의 루트 디렉토리 지정
     sourceType: 'module', // 모듈 시스템 사용을 위해 'module'로 설정
   },
+  settings: {
+    'import/core-modules': ['framer-motion'],
+  },
   rules: {
     'react/jsx-props-no-spreading': 0, // JSX 내의 props spreading을 허용
     'react/jsx-uses-react': 0, // React 버전 17 이후 JSX 변환에 React 임포트가 필요 없음
     'react/react-in-jsx-scope': 0, // React 버전 17 이후 JSX 사용 시 React를 범위 내에 두지 않아도 됨
     'import/extensions': 0,
     'no-bitwise': 0, // 비트 연산자를 허용
-    'import/prefer-default-export': 'off',
+    'react/require-default-props': ['error', { ignoreFunctionalComponents: true }],
   },
 };
