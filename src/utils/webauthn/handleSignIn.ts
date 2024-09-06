@@ -6,7 +6,7 @@ import { RP_IDENTIFIER } from '@/constant';
 import { Member } from '@/types/member';
 import { wallet } from '@/utils/viem';
 import { storage } from '@/utils/indexedDb';
-import { bundlerOperation, bundlerSend, bundlerOperationk1 } from '@/utils/accountAbstraction/bundler';
+import { bundlerOperation, bundlerSend, bundlerOperationk1 } from '@/services/bundler';
 import { decodeAndSetupUserOperation } from '@/utils/accountAbstraction';
 import { WebauthnSignInData } from '@/types/webauthn';
 import { fetchUserOperationReceipt } from '@/utils/accountAbstraction/api';

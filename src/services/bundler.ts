@@ -14,7 +14,11 @@ import { SEPOLIA } from '@/constant/blockchain/chainId';
 
 import { Member } from '@/types/member';
 import { UserOperation } from '@/types/accountAbstraction';
-import { estimateUserOperationGas, paymasterSponsorUserOperation, sendUserOperation } from './api';
+import {
+  estimateUserOperationGas,
+  paymasterSponsorUserOperation,
+  sendUserOperation,
+} from '../utils/accountAbstraction/api';
 import { signUserOp } from '@/utils/accountAbstraction/utils/secp256k1Sign';
 
 export async function bundlerOperationk1(publicKey: `0x${string}`, privateKey: `0x${string}`): Promise<UserOperation> {
