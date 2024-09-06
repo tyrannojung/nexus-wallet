@@ -78,4 +78,24 @@ export const getItem = async (itemKey: string): Promise<any> => {
     };
   });
 };
-export const storage = { setItem, getItem };
+
+export const clearAll = async (): Promise<void> => {
+  const db = await openDB();
+  const transaction = db.transaction('storage', 'readwrite');
+  const store = transaction.objectStore('storage');
+  const request = store.clear();
+
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => {
+      console.log('All items removed successfully');
+      resolve();
+    };
+
+    request.onerror = () => {
+      console.error('Error removing all items', request.error);
+      reject(request.error);
+    };
+  });
+};
+
+export const storage = { setItem, getItem, clearAll };

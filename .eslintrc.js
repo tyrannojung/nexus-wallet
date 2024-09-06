@@ -45,5 +45,6 @@ module.exports = {
     'import/extensions': 0,
     'no-bitwise': 0, // 비트 연산자를 허용
     'react/require-default-props': ['error', { ignoreFunctionalComponents: true }],
+    'consistent-return': 0, // return consistency 규칙을 비활성화
   },
 };

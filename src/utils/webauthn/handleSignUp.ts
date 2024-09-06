@@ -3,10 +3,18 @@ import {
   AuthenticationExtensionsClientOutputsLargeBlob,
 } from '@/types/webauthnLargeBlob';
 import { RP_NAME, RP_IDENTIFIER, SIGNATURE_NAME } from '@/constant';
-import { registerLocalPublicAccount } from '@/utils/accountAbstraction';
+import { decodeAndSetupRegistration } from '@/utils/accountAbstraction';
 import { storage } from '@/utils/indexedDb';
+import { WebauthnSignUpData } from '@/types/webauthn';
+import { Member } from '@/types/member';
 
-const handleSignUp = async (): Promise<PublicKeyCredential | null> => {
+interface SignUpResult {
+  largeBlobSupport?: boolean;
+  regCredential?: PublicKeyCredential;
+  signUpData?: WebauthnSignUpData;
+}
+
+const handleSignUp = async (): Promise<SignUpResult | null> => {
   try {
     const options: CredentialCreationOptionsLargeBlob = {
       publicKey: {
@@ -36,21 +44,36 @@ const handleSignUp = async (): Promise<PublicKeyCredential | null> => {
       },
     };
 
+    // fido 상호 작용
     const regCredential = (await navigator.credentials.create({ publicKey: options.publicKey })) as PublicKeyCredential;
-    const indexDBsetCheck = await registerLocalPublicAccount(regCredential);
 
+    // 데이터 직렬화
+    const signUpData = await decodeAndSetupRegistration(regCredential);
+
+    const memberInfo: Member = {
+      id: 'testId',
+      pubkCoordinates: [signUpData.xCoordinate, signUpData.yCoordinate],
+      email: 'test@test.co.kr',
+      name: 'test',
+    };
+    await storage.setItem('memberInfo', memberInfo);
+
+    // fido 확장 large blob 체크
     const extensionResults =
       regCredential.getClientExtensionResults() as AuthenticationExtensionsClientOutputsLargeBlob;
 
-    if (extensionResults.largeBlob && extensionResults.largeBlob.supported && indexDBsetCheck) {
-      console.log('Large blob is supported for this credential.');
+    if (extensionResults.largeBlob && extensionResults.largeBlob.supported && signUpData) {
       await storage.setItem('regCredential', regCredential);
-      return regCredential;
+      return {
+        largeBlobSupport: true,
+        regCredential,
+        signUpData,
+      };
     }
-    console.log('Large blob is not supported.');
-    return null;
+    return {
+      largeBlobSupport: false,
+    };
   } catch (err) {
-    console.error('Error during credential creation or retrieval:', err);
     return null;
   }
 };

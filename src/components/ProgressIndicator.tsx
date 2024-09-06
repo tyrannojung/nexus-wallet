@@ -27,7 +27,7 @@ function Icon({ icon: IconComponent, title, active }: IconProps) {
           <IconComponent size={24} />
         </Flex>
         <AnimatePresence>
-          {active && ( // 여기서 초록색 체크박스가 나타나는 시점을 결정한다.
+          {active && (
             <MotionBox
               position="absolute"
               top="50%"
@@ -55,9 +55,27 @@ function Icon({ icon: IconComponent, title, active }: IconProps) {
     </Flex>
   );
 }
-function Line({ showDot, reverse }: { showDot: boolean; reverse: boolean }) {
+
+function Line({ showDot, message, reverse }: { showDot: boolean; message: string[]; reverse: boolean }) {
   return (
     <Box position="relative" width="250px" height="2px" bg="gray.300">
+      <Box
+        position="absolute"
+        bottom="-40px" // 메시지 개수에 따라 위치를 바꿔야 할듯
+        left="50%"
+        transform="translateX(-50%)"
+        fontSize="12px"
+        color="gray.700"
+        textAlign="center"
+        opacity={showDot ? 1 : 0}
+        transition="opacity 0.5s ease-in-out"
+      >
+        {message.map((line, index) => (
+          <Text key={line} mb={index < message.length - 1 ? 1 : 0}>
+            {line}
+          </Text>
+        ))}
+      </Box>
       <AnimatePresence>
         {showDot && (
           <MotionBox
@@ -79,10 +97,20 @@ function Line({ showDot, reverse }: { showDot: boolean; reverse: boolean }) {
   );
 }
 
-const icons = [FaMobileAlt, FaUser, FaDesktop];
-const titles = ['Authenticator', 'User', 'Wallet'];
+const icons = [FaDesktop, FaMobileAlt, FaUser];
+const titles = ['Wallet', 'Authenticator', 'User'];
+interface SequenceItem {
+  index: number;
+  message: string[];
+}
 
-export default function ProgressIndicator({ sequence, title }: { sequence: number[]; title: string }) {
+export default function ProgressIndicator({
+  sequence,
+  title,
+}: {
+  sequence: SequenceItem[]; // 수정된 타입
+  title: string;
+}) {
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [showDot, setShowDot] = useState(false);
   const [activeIcon, setActiveIcon] = useState<number | null>(null);
@@ -102,7 +130,7 @@ export default function ProgressIndicator({ sequence, title }: { sequence: numbe
     setCurrentIndex((prevIndex) => {
       const nextIndex = prevIndex + 1;
       if (nextIndex >= sequence.length - 1) {
-        setActiveIcon(sequence[sequence.length - 1] - 1);
+        setActiveIcon(sequence[sequence.length - 1].index - 1);
       }
       return nextIndex;
     });
@@ -113,7 +141,6 @@ export default function ProgressIndicator({ sequence, title }: { sequence: numbe
   useEffect(() => {
     const timer = setTimeout(() => {
       if (currentIndex >= sequence.length - 1) {
-        // 완료 상태에서 3초 후 리셋
         resetProgress();
       } else {
         progressStep();
@@ -129,7 +156,7 @@ export default function ProgressIndicator({ sequence, title }: { sequence: numbe
     const timer = setTimeout(() => {
       setShowDot(false);
       if (currentIndex >= 0 && currentIndex < sequence.length - 1) {
-        const nextIconIndex = sequence[currentIndex + 1] - 1;
+        const nextIconIndex = sequence[currentIndex + 1].index - 1;
         setActiveIcon(nextIconIndex);
       }
     }, 1000);
@@ -138,13 +165,16 @@ export default function ProgressIndicator({ sequence, title }: { sequence: numbe
   }, [showDot, currentIndex, sequence]);
 
   const getLineProps = (index: number) => {
-    if (currentIndex < 0 || currentIndex >= sequence.length - 1) return { showDot: false, reverse: false };
-    const current = sequence[currentIndex] - 1;
-    const next = sequence[currentIndex + 1] - 1;
-    if (index === Math.min(current, next)) {
-      return { showDot, reverse: current > next };
+    if (currentIndex < 0 || currentIndex >= sequence.length - 1) {
+      return { showDot: false, reverse: false, message: [] }; // 빈 배열 반환
     }
-    return { showDot: false, reverse: false };
+    const current = sequence[currentIndex].index - 1;
+    const next = sequence[currentIndex + 1].index - 1;
+    const { message } = sequence[currentIndex]; // 배열 그대로 사용
+    if (index === Math.min(current, next)) {
+      return { showDot, reverse: current > next, message };
+    }
+    return { showDot: false, reverse: false, message: [] }; // 빈 배열 반환
   };
 
   return (
@@ -159,7 +189,9 @@ export default function ProgressIndicator({ sequence, title }: { sequence: numbe
               <Icon
                 icon={icons[iconIndex]}
                 title={titles[iconIndex]}
-                active={activeIcon === iconIndex || (isCompleted && iconIndex === sequence[sequence.length - 1] - 1)}
+                active={
+                  activeIcon === iconIndex || (isCompleted && iconIndex === sequence[sequence.length - 1].index - 1)
+                }
               />
               {iconIndex < 2 && <Line {...getLineProps(iconIndex)} />}
             </React.Fragment>

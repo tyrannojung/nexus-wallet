@@ -7,58 +7,39 @@ import decodeAuthenticationCredential from '@/utils/accountAbstraction/utils/dec
 import authResponseToSigVerificationInput from '@/utils/accountAbstraction/utils/authResponseToSigVerificationInput';
 import { convertToAuthenticationResponseJSON, convertToRegistrationResponseJSON } from './utils/actionUtils';
 
-import { Member } from '@/types/member';
-import { storage } from '@/utils/indexedDb';
 import { UserOperation } from '@/types/accountAbstraction';
-import { bundlerSend } from './bundler';
+import { WebauthnSignUpData, WebauthnSignInData } from '@/types/webauthn';
 
-// export const check = async () => {
-//   const challenge = new Uint8Array([1, 2, 3, 4]);
-//   const standardBase64 = base64url.encode(Buffer.from(challenge));
-//   console.log(`standardBase64: ${standardBase64}`);
-//   const challengeBuffer = base64url.toBuffer(standardBase64);
-//   const challengeHex = challengeBuffer.toString('hex');
-//   const userChallenge = `0x${challengeHex}`;
-//   console.log(`userChallenge: ${userChallenge}`); // 0x01020304
-// };
+export const decodeAndSetupRegistration = async (regCredential: PublicKeyCredential): Promise<WebauthnSignUpData> => {
+  const registrationResponseJSON = convertToRegistrationResponseJSON(regCredential);
 
-export const registerLocalPublicAccount = async (regCredential: PublicKeyCredential): Promise<boolean> => {
-  try {
-    const registrationResponseJSON = convertToRegistrationResponseJSON(regCredential);
+  // 변환된 객체를 SimpleWebAuthn의 RegistrationResponseJSON으로 캐스팅
+  const simpleWebAuthnRegistrationResponseJSON =
+    registrationResponseJSON as unknown as SimpleWebAuthnRegistrationResponseJSON;
+  const decodedPassKey = decodeRegistrationCredential(simpleWebAuthnRegistrationResponseJSON);
 
-    // 변환된 객체를 SimpleWebAuthn의 RegistrationResponseJSON으로 캐스팅
-    const simpleWebAuthnRegistrationResponseJSON =
-      registrationResponseJSON as unknown as SimpleWebAuthnRegistrationResponseJSON;
-    const decodedPassKey = decodeRegistrationCredential(simpleWebAuthnRegistrationResponseJSON);
+  const pubKeyCoordinates = [
+    `0x${base64url
+      .toBuffer(decodedPassKey.response.attestationObject.authData.parsedCredentialPublicKey?.x || '')
+      .toString('hex')}`,
+    `0x${base64url
+      .toBuffer(decodedPassKey.response.attestationObject.authData.parsedCredentialPublicKey?.y || '')
+      .toString('hex')}`,
+  ];
 
-    const pubKeyCoordinates = [
-      `0x${base64url
-        .toBuffer(decodedPassKey.response.attestationObject.authData.parsedCredentialPublicKey?.x || '')
-        .toString('hex')}`,
-      `0x${base64url
-        .toBuffer(decodedPassKey.response.attestationObject.authData.parsedCredentialPublicKey?.y || '')
-        .toString('hex')}`,
-    ];
-
-    const memberInfo: Member = {
-      id: 'testId',
-      pubkCoordinates: pubKeyCoordinates,
-      email: 'test@test.co.kr',
-      name: 'test',
-    };
-    await storage.setItem('memberInfo', memberInfo);
-
-    // 모든 작업이 성공적으로 완료된 경우 true 반환
-    return true;
-  } catch (error) {
-    console.error('Failed to register local public account:', error);
-
-    // 오류가 발생한 경우 false 반환
-    return false;
-  }
+  return {
+    keyType: 'Elliptic Curve',
+    algorithm: 'Elliptic Curve Digital Signature Algorithm with SHA-256',
+    curve: 'NIST P-256',
+    xCoordinate: pubKeyCoordinates[0],
+    yCoordinate: pubKeyCoordinates[1],
+  };
 };
 
-export const createAccountAbstraction = async (getCredential: PublicKeyCredential, userOperation: UserOperation) => {
+export const decodeAndSetupUserOperation = async (
+  getCredential: PublicKeyCredential,
+  userOperation: UserOperation,
+): Promise<WebauthnSignInData> => {
   const authenticationResponseJSON = convertToAuthenticationResponseJSON(getCredential);
   const decodedPassKey = decodeAuthenticationCredential(authenticationResponseJSON);
   const ecVerifyInputs = authResponseToSigVerificationInput({}, authenticationResponseJSON.response);
@@ -84,5 +65,23 @@ export const createAccountAbstraction = async (getCredential: PublicKeyCredentia
   updateUserOperation.signature = challengeUpdate;
   console.log('userOperation====', updateUserOperation);
 
-  bundlerSend(updateUserOperation);
+  return {
+    authenticatorDataFlagMask,
+    authenticatorData,
+    clientData,
+    clientChallenge,
+    clientChallengeOffset,
+    signature: challengeUpdate,
+    userOperation: updateUserOperation,
+  };
 };
+
+// export const check = async () => {
+//   const challenge = new Uint8Array([1, 2, 3, 4]);
+//   const standardBase64 = base64url.encode(Buffer.from(challenge));
+//   console.log(`standardBase64: ${standardBase64}`);
+//   const challengeBuffer = base64url.toBuffer(standardBase64);
+//   const challengeHex = challengeBuffer.toString('hex');
+//   const userChallenge = `0x${challengeHex}`;
+//   console.log(`userChallenge: ${userChallenge}`); // 0x01020304
+// };

@@ -1,1 +1,1 @@
-export { registerLocalPublicAccount, createAccountAbstraction } from './action';
+export { decodeAndSetupRegistration, decodeAndSetupUserOperation } from './action';

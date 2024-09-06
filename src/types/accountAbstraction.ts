@@ -11,3 +11,18 @@ export interface UserOperation {
   paymasterAndData: string;
   signature: string;
 }
+
+export interface UserOperationReceipt {
+  userOpHash: string;
+  sender: string;
+  nonce: string;
+  actualGasCost: string;
+  actualGasUsed: string;
+  success: boolean;
+  logs: any[];
+  receipt: {
+    transactionHash: string;
+    blockNumber: string;
+    status: string;
+  };
+}

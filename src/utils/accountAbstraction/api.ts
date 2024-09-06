@@ -1,4 +1,4 @@
-import { UserOperation } from '@/types/accountAbstraction';
+import { UserOperation, UserOperationReceipt } from '@/types/accountAbstraction';
 
 export async function paymasterSponsorUserOperation(param: UserOperation) {
   const url = 'http://127.0.0.1:4339/paymaster';
@@ -96,6 +96,57 @@ export async function sendUserOperation(param: UserOperation) {
     return result;
   } catch (error) {
     console.error('Failed to send request:', error);
+    return null;
+  }
+}
+
+export async function fetchUserOperationReceipt(userOpHash: string): Promise<UserOperationReceipt | null> {
+  const url = 'http://localhost:3050/rpc';
+  const data = {
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'eth_getUserOperationReceipt',
+    params: [userOpHash],
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (result.result) {
+      const userOpReceipt: UserOperationReceipt = {
+        userOpHash: result.result.userOpHash,
+        sender: result.result.sender,
+        nonce: result.result.nonce,
+        actualGasCost: result.result.actualGasCost,
+        actualGasUsed: result.result.actualGasUsed,
+        success: result.result.success,
+        logs: result.result.logs,
+        receipt: {
+          transactionHash: result.result.receipt.transactionHash,
+          blockNumber: result.result.receipt.blockNumber,
+          status: result.result.receipt.status,
+        },
+      };
+      return userOpReceipt;
+    }
+    console.error('Unexpected response format:', result);
+    return null;
+  } catch (error) {
+    console.error('Failed to fetch user operation receipt:', error);
     return null;
   }
 }
