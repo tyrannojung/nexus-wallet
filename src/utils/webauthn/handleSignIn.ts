@@ -6,15 +6,15 @@ import { RP_IDENTIFIER } from '@/constant';
 import { Member } from '@/types/member';
 import { wallet } from '@/utils/viem';
 import { storage } from '@/utils/indexedDb';
-import { bundlerOperation, bundlerSend, bundlerOperationk1 } from '@/services/bundler';
+import { walletCreateOperation, bundlerSend } from '@/utils/accountAbstraction/bundler';
 import { decodeAndSetupUserOperation } from '@/utils/accountAbstraction';
 import { WebauthnSignInData } from '@/types/webauthn';
-import { fetchUserOperationReceipt } from '@/utils/accountAbstraction/api';
-import { UserOperationReceipt } from '@/types/accountAbstraction';
+import { fetchUserOperationReceipt } from '@/services/bundlerApi';
+import { AccountType, UserOperationReceipt, UserOperation } from '@/types/accountAbstraction';
 
 interface SignInResult {
   fidoData?: WebauthnSignInData;
-  accountAbstractionData?: UserOperationReceipt;
+  accountAbstractionData?: UserOperationReceipt[];
   largeBlobSupport?: boolean;
 }
 
@@ -23,7 +23,10 @@ export const handleSignInWrite = async (
   member: Member,
 ): Promise<SignInResult | null> => {
   try {
-    const userOperation = await bundlerOperation(member);
+    const updatedMember = { ...member };
+    console.log('🚀 ~ updatedMember:', updatedMember);
+
+    const userOperation = await walletCreateOperation(AccountType.R1, updatedMember);
     const valueBeforeSigning = userOperation.signature;
     // 16진수 문자열을 Buffer로 변환
     const bufferChallenge = Buffer.from(valueBeforeSigning.slice(2), 'hex');
@@ -37,6 +40,8 @@ export const handleSignInWrite = async (
 
     const createPrivateKey = wallet.createPrivateKey(); // main os entropy를 통해 eoa 생성해주는 함수
     const getPublicKey = wallet.getPublicKeyFromPrivateKey(createPrivateKey);
+    updatedMember.eoa = getPublicKey;
+
     const blobBits = new TextEncoder().encode(createPrivateKey);
     const blob = Uint8Array.from(blobBits);
     const requestOptions: CredentialRequestOptionsLargeBlob = {
@@ -61,21 +66,37 @@ export const handleSignInWrite = async (
     // fido 상호 작용
     const getCredential = (await navigator.credentials.get(requestOptions)) as PublicKeyCredential;
 
+    // fido 확장 large blob 체크
+    const extensionResults =
+      getCredential.getClientExtensionResults() as AuthenticationExtensionsClientOutputsLargeBlob;
+
+    if (!extensionResults.largeBlob || !extensionResults.largeBlob.written) {
+      return {
+        largeBlobSupport: false,
+      };
+    }
+
     // 데이터 직렬화
     const signInData = await decodeAndSetupUserOperation(getCredential, userOperation);
-    console.log('🚀 ~ signInData:', signInData);
 
     // secp256k1 계정 생성
-    const userOpk1 = await bundlerOperationk1(getPublicKey, createPrivateKey);
+    const userOpk1 = await walletCreateOperation(AccountType.K1, updatedMember, createPrivateKey);
+    const userOpr1 = signInData.userOperation;
+    const userOperations: UserOperation[] = [userOpk1, userOpr1];
+    const bundlerData = await bundlerSend(userOperations);
 
-    const bundlerData = await bundlerSend(userOpk1);
-    console.log('🚀 ~ bundlerData:', bundlerData);
+    // console.log('🚀 ~ bundlerData1 Useroperation:', userOpk1);
+    // const bundlerData = await bundlerSend(userOpk1);
+    // console.log('🚀 ~ bundlerData:', bundlerData);
+    // console.log('🚀 ~ bundlerData2: Useroperation', userOpr1);
+    // const bundlerData2 = await bundlerSend(userOpr1);
+    // console.log('🚀 ~ bundlerData2:', bundlerData2);
+
     //   {
     //     "jsonrpc": "2.0",
     //     "id": 1,
     //     "result": "0xbc9fa4290354bac3389e7505f6ef20a25a9ad5567244e671edd312215be1b89a"
     // }
-    const userOpHash = bundlerData.result;
 
     const fetchReceiptWithTimeout = (hash: string, timeout: number): Promise<UserOperationReceipt | null> =>
       new Promise((resolve, reject) => {
@@ -96,15 +117,33 @@ export const handleSignInWrite = async (
 
         checkReceipt();
       });
-    const userOpReceipt = await fetchReceiptWithTimeout(userOpHash, 60000);
 
-    console.log('🚀 ~ userOpReceipt:', userOpReceipt);
+    const processUserOperations = async (bundlerDataValue: any[]) => {
+      const results = await Promise.all(
+        bundlerDataValue.map(async (data) => {
+          if (data && data.result) {
+            const userOpHash = data.result;
+            try {
+              const userOpReceipt = await fetchReceiptWithTimeout(userOpHash, 60000);
+              console.log('🚀 ~ userOpReceipt:', userOpReceipt);
+              return userOpReceipt;
+            } catch (error) {
+              console.error('Error fetching receipt:', error);
+              return null;
+            }
+          }
+          return null;
+        }),
+      );
 
-    // fido 확장 large blob 체크
-    const extensionResults =
-      getCredential.getClientExtensionResults() as AuthenticationExtensionsClientOutputsLargeBlob;
+      return results.filter((receipt) => receipt !== null);
+    };
 
-    if (extensionResults.largeBlob && extensionResults.largeBlob.written && userOpReceipt) {
+    const userOpReceipts = await processUserOperations(bundlerData);
+
+    console.log('🚀 ~ userOpReceipt:', userOpReceipts);
+
+    if (userOpReceipts) {
       const existingMemberInfo: Member = await storage.getItem('memberInfo');
       if (existingMemberInfo) {
         const updatedMemberInfo = {
@@ -115,16 +154,14 @@ export const handleSignInWrite = async (
         return {
           largeBlobSupport: true,
           fidoData: signInData,
-          accountAbstractionData: userOpReceipt,
+          accountAbstractionData: userOpReceipts,
         };
       }
     }
-    return {
-      largeBlobSupport: false,
-    };
   } catch (err) {
     return null;
   }
+  return null;
 };
 
 export const handleSignInRead = async (regCredential: PublicKeyCredential): Promise<boolean> => {

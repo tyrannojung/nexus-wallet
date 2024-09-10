@@ -66,38 +66,43 @@ export async function estimateUserOperationGas(param: UserOperation) {
   }
 }
 
-export async function sendUserOperation(param: UserOperation) {
+export async function sendUserOperations(params: UserOperation[]) {
   const url = 'http://localhost:3050/rpc';
-  const data = {
-    jsonrpc: '2.0',
-    id: 1,
-    method: 'eth_sendUserOperation',
-    params: [] as any,
-  };
-  data.params.push(param);
-  data.params.push('0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789');
 
-  try {
-    const response = await fetch(url, {
-      method: 'POST', // HTTP 요청 메소드
-      headers: {
-        'Content-Type': 'application/json', // 내용 유형을 JSON으로 설정
-        'Cache-Control': 'no-cache', // 캐싱 방지
-        Pragma: 'no-cache', // HTTP/1.0 캐시 제어
-      },
-      body: JSON.stringify(data), // JavaScript 객체를 JSON 문자열로 변환
-    });
+  const results = await Promise.all(
+    params.map(async (param) => {
+      const data = {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'eth_sendUserOperation',
+        params: [param, '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789'],
+      };
 
-    if (!response.ok) {
-      throw new Error(`Error! status: ${response.status}`);
-    }
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+            Pragma: 'no-cache',
+          },
+          body: JSON.stringify(data),
+        });
 
-    const result = await response.json(); // 응답을 JSON으로 파싱
-    return result;
-  } catch (error) {
-    console.error('Failed to send request:', error);
-    return null;
-  }
+        if (!response.ok) {
+          throw new Error(`Error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result;
+      } catch (error) {
+        console.error('Failed to send request:', error);
+        return null;
+      }
+    }),
+  );
+
+  return results;
 }
 
 export async function fetchUserOperationReceipt(userOpHash: string): Promise<UserOperationReceipt | null> {

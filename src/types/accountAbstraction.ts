@@ -1,3 +1,8 @@
+export enum AccountType {
+  K1 = 'k1',
+  R1 = 'r1',
+}
+
 export interface UserOperation {
   sender: string;
   nonce: string;

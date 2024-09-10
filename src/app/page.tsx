@@ -57,7 +57,7 @@ export default function Home() {
   const [member, setMember] = useState<Member | null>(null);
   const [forceRender, setForceRender] = useState(false);
   const [fidoResult, setFidoResult] = useState<string | WebauthnSignUpData | WebauthnSignInData>('');
-  const [erc4337Result, setErc4337Result] = useState<string | UserOperationReceipt>('');
+  const [erc4337Result, setErc4337Result] = useState<string | UserOperationReceipt | UserOperationReceipt[]>('');
 
   useEffect(() => {
     const fetchCredential = async () => {
@@ -299,10 +299,30 @@ export default function Home() {
                   <Text fontSize="lg" fontWeight="bold" mb={2} color="blue.500">
                     ERC-4337 Data
                   </Text>
-                  {typeof erc4337Result === 'string' ? (
-                    <Text wordBreak="break-all">{erc4337Result}</Text>
-                  ) : (
-                    Object.entries(erc4337Result).map(([key, value]) => (
+                  {(() => {
+                    if (typeof erc4337Result === 'string') {
+                      return <Text wordBreak="break-all">{erc4337Result}</Text>;
+                    }
+
+                    if (Array.isArray(erc4337Result)) {
+                      return erc4337Result.map((result, index) => (
+                        <Box key={index} mb={4} p={3} bg={useColorModeValue('white', 'gray.600')} borderRadius="md">
+                          <Text fontWeight="bold" mb={2}>
+                            Result {index + 1}:
+                          </Text>
+                          {Object.entries(result).map(([key, value]) => (
+                            <Box key={key} mb={2} pl={2}>
+                              <Text fontWeight="bold">{key}:</Text>
+                              <Text pl={2} wordBreak="break-all">
+                                {typeof value === 'string' ? value : JSON.stringify(value, null, 2)}
+                              </Text>
+                            </Box>
+                          ))}
+                        </Box>
+                      ));
+                    }
+
+                    return Object.entries(erc4337Result).map(([key, value]) => (
                       <Box key={key} mb={3} p={2} bg={useColorModeValue('white', 'gray.600')} borderRadius="md">
                         <Text fontWeight="bold" mb={1}>
                           {key}:
@@ -311,8 +331,8 @@ export default function Home() {
                           {typeof value === 'string' ? value : JSON.stringify(value, null, 2)}
                         </Text>
                       </Box>
-                    ))
-                  )}
+                    ));
+                  })()}
                 </Box>
               </GridItem>
             </Grid>
