@@ -24,7 +24,6 @@ export const handleSignInWrite = async (
   member: Member,
 ): Promise<SignInResult | null> => {
   try {
-    console.log('????');
     const updatedMember = { ...member };
     console.log('🚀 ~ updatedMember:', updatedMember);
 
