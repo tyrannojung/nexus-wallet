@@ -77,6 +77,7 @@ export default function Home() {
     if (result && result.largeBlobSupport && result.regCredential && result.signUpData) {
       // indexDB 저장
       const memberInfo = await storage.getItem('memberInfo');
+      console.log(member);
 
       // state 저장
       setMember(memberInfo);
@@ -90,6 +91,8 @@ export default function Home() {
   };
 
   const handleSignInClick = async () => {
+    console.log(regCredential);
+    console.log(member);
     if (!regCredential || !member) return;
     const result = await handleSignInWrite(regCredential, member);
     if (result && result.largeBlobSupport && result.fidoData && result.accountAbstractionData) {
