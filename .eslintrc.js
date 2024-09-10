@@ -48,5 +48,6 @@ module.exports = {
     'consistent-return': 0, // return consistency 규칙을 비활성화
     'import/prefer-default-export': 0, // 기본 내보내기 규칙을 비활성화
     'react/no-array-index-key': 0, // 배열 인덱스를 key로 사용하는 것을 허용
+    'no-console': 0, // 모든 console 사용을 허용
   },
 };

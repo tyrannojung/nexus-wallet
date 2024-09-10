@@ -155,3 +155,10 @@ export async function fetchUserOperationReceipt(userOpHash: string): Promise<Use
     return null;
   }
 }
+
+export const bundler = {
+  paymasterSponsorUserOperation,
+  estimateUserOperationGas,
+  sendUserOperations,
+  fetchUserOperationReceipt,
+};
